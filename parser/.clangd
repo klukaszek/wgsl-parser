@@ -1,0 +1,10 @@
+CompileFlags:
+  Add: 
+    - "-std=gnu11"
+    - "-I../../sokol/"
+    - "-I../../sokol/util/"
+    - "-I../../fips-cimgui/cimgui/"
+    - "-I../../fips-sdks/emsdk/upstream/emscripten/cache/sysroot/include/"
+    - "-I../../fips-cglm/cglm/include/cglm/"
+    - "-I../"
+    - "-I../assets/fonts/"

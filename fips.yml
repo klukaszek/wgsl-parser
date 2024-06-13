@@ -1,0 +1,33 @@
+#
+# parse-wgpu
+#
+---
+
+policies:
+  no_auto_import: true
+imports:
+  fips-utils:
+    git: https://github.com/fips-libs/fips-utils
+
+#   imports:
+#       PROJ-NAME:
+#           git: GIT-URL
+#           branch: OPTIONAL BRANCH OR TAG NAME
+#   exports:
+#       header-dirs:
+#           - RELATIVE HEADER SEARCH PATH
+#           - ...
+#       lib-dirs:
+#           - RELATIVE LIB SEARCH PATH
+#           - ...
+#       defines:
+#           KEY: VALUE (C preprocessor defines)
+#           ...: ...
+#       modules:
+#           NAME:   DIRECTORY WITH CMakeLists.txt of MODULE
+#           ...: ...
+#   run:
+#       TARGET-NAME:
+#           cwd:    WORKING DIRECTORY FOR 'fips run target'
+#       ...
+
