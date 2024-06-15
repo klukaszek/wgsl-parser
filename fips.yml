@@ -9,9 +9,9 @@ imports:
   fips-utils:
     git: https://github.com/fips-libs/fips-utils
 exports:
-    header-dirs: [ lib/ , cimgui/imgui/ ]
+    header-dirs: [ parser/ ]
     modules:
-        cimgui: .
+        wgsl-parser: .
 
 #   imports:
 #       PROJ-NAME:
