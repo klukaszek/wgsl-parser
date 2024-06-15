@@ -39,8 +39,21 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Could not read file %s\n", filename);
         return 1;
     }
+    
+    // Initialize the compute info struct
+    ComputeInfo info = {
+        .workgroup_size = {1, 1, 1},
+        .groups = {{0}},
+        .entry = {0},
+    };
 
-    printf("Shader:\n%s\n", shader);
+    int status = parse_wgsl(shader, &info);
+    if (status < 0) {
+        fprintf(stderr, "Error parsing WGSL\n");
+        return 1;
+    }
+
+    print_compute_info(&info);
 
     free(shader);
 

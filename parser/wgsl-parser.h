@@ -1,18 +1,44 @@
+#include <pcre.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#define OVECCOUNT 120
+
+#define MAX_GROUPS 8
+#define MAX_BINDINGS 8
+
+// Represents a binding in the shader
 typedef struct {
-    
     int binding;
-    char *type;
+    char type[256];
     int group;
-
 } BindingInfo;
 
-BindingInfo *parse_wgsl(const char *filename, int *num_bindings);
+// Represents a group of bindings
+typedef struct {
+    int group;
+    BindingInfo bindings[MAX_BINDINGS];
+    int num_bindings;
+} GroupInfo;
+
+// Represents a compute shader
+typedef struct {
+    char entry[256];
+    GroupInfo groups[MAX_GROUPS];
+    int workgroup_size[3];
+} ComputeInfo;
+
+
+// Parsing functions
+// -----------------------------------------------
+int parse_wgsl(char *shader, ComputeInfo *info);
 
 // File IO
 // -----------------------------------------------
 // Function to read a shader into a string
 char *read_file(const char *filename);
 
+// Helper functions
+// -----------------------------------------------
+void print_compute_info(ComputeInfo *info);
