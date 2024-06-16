@@ -9,7 +9,6 @@ include("${FIPS_ROOT_DIR}/cmake/fips.cmake")
 
 include_directories(assets)
 fips_setup()
-add_subdirectory(slre)
 add_subdirectory(parser)
 # add_subdirectory(src/...)
 fips_finish()
