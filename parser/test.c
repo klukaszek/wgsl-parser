@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define ASSET_PATH "/home/kyle/Projects/fips-projects/parse-wgsl/assets/%s"
+#define ASSET_PATH "/home/kyle/Projects/fips-projects/wgsl-parser/assets/%s"
 
 int main(int argc, char **argv) {
     if (argc < 2) {

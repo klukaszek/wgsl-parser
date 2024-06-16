@@ -11,7 +11,8 @@ imports:
 exports:
     header-dirs: [ parser/ ]
     modules:
-        wgsl-parser: .
+        wgsl-parser: ./parser
+        slre: ./slre
 
 #   imports:
 #       PROJ-NAME:

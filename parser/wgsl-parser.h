@@ -1,12 +1,15 @@
-#include <pcre.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../slre/slre.h"
 
 #define OVECCOUNT 120
 
 #define MAX_GROUPS 8
 #define MAX_BINDINGS 8
+
+#ifndef WGSL_PARSER_H
+    #define WGSL_PARSER_H
 
 // Represents a binding in the shader
 typedef struct {
@@ -29,7 +32,6 @@ typedef struct {
     int workgroup_size[3];
 } ComputeInfo;
 
-
 // Parsing functions
 // -----------------------------------------------
 int parse_wgsl(char *shader, ComputeInfo *info);
@@ -42,3 +44,5 @@ char *read_file(const char *filename);
 // Helper functions
 // -----------------------------------------------
 void print_compute_info(ComputeInfo *info);
+
+#endif
