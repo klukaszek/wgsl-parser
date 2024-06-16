@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
         .entry = {0},
     };
 
-    int status = parse_wgsl(shader, &info);
+    int status = parse_wgsl_compute(shader, &info);
     if (status < 0) {
         fprintf(stderr, "Error parsing WGSL\n");
         return 1;

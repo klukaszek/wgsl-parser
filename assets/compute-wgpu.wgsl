@@ -2,7 +2,7 @@ struct Data {
     value: f32,
 };
 
-@group(0) @binding(0) var<storage, read_write> input : array<Data>;
+[[group(0), binding(0)]] var<storage, read_write> input : array<Data>;
 @group(0) @binding(1) var<storage, read_write> output : array<Data>;
 
 fn f(x: f32) -> f32 {

@@ -34,7 +34,7 @@ typedef struct {
 
 // Parsing functions
 // -----------------------------------------------
-int parse_wgsl(char *shader, ComputeInfo *info);
+int parse_wgsl_compute(char *shader, ComputeInfo *info);
 
 // File IO
 // -----------------------------------------------

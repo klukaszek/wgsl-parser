@@ -95,22 +95,25 @@ int parse_binding_defs(char *shader_code, ComputeInfo *info) {
         return -1;
     }
 
+    char *shader_code_start = shader_code;
     int match_length;
     int num_found = 0;
     const char *patterns[4] = {
         "@group\\((\\d+)\\)\\s*@binding\\((\\d+)\\)\\s*texture<([^>]+)>",
         "@group\\((\\d+)\\)\\s*@binding\\((\\d+)\\)\\s*var<([^>]+)>",
         "\\[\\[group\\((\\d+)\\), binding\\((\\d+)\\)\\]]\\s*var<([^>]+)>",
-        "\\[\\[group\\((\\d+)\\), binding\\((\\d+)\\)]]\\s*texture<([^>]+)>"
-    };
+        "\\[\\[group\\((\\d+)\\), binding\\((\\d+)\\)\\]]\\s*texture<([^>]+)>"};
 
     // Iterate until all patterns are tested.
     // If no pattern is found, return -1
     for (unsigned long i = 0; i < sizeof(patterns) / sizeof(patterns[0]); i++) {
-        struct slre_cap caps[3]; // (group) (binding) (type)
+        // (group) (binding) (type)
+        struct slre_cap caps[3];
+        // Iterate through the shader code and find all matches of the pattern
         while ((match_length = slre_match(patterns[i], shader_code,
                                           strlen(shader_code), caps, 3, 0))) {
-            if (match_length > 0 && num_found < MAX_GROUPS) { // Check bounds for array
+            if (match_length > 0 &&
+                num_found < MAX_GROUPS) { // Check bounds for array
                 int group = atoi(caps[0].ptr);
                 int binding = atoi(caps[1].ptr);
                 strncpy(info->groups[group].bindings[binding].type, caps[2].ptr,
@@ -127,13 +130,15 @@ int parse_binding_defs(char *shader_code, ComputeInfo *info) {
                 break;
             }
         }
+        // Reset the shader code pointer to the start for the next pattern
+        shader_code = shader_code_start;
     }
 
     return 1;
 }
 
 // determine the compute shader entrypoint, workgroup size, and binding layout
-int parse_wgsl(char *shader_code, ComputeInfo *info) {
+int parse_wgsl_compute(char *shader_code, ComputeInfo *info) {
 
     if (!shader_code) {
         printf("Error -> parse_wgsl(): Shader code is NULL\n");
@@ -165,9 +170,10 @@ int parse_wgsl(char *shader_code, ComputeInfo *info) {
     // Determine the number of groups for our binding layouts
     status = parse_binding_defs(shader_code, info);
 
-    return 1;
+    return status;
 }
 
+// Print the compute info struct
 void print_compute_info(ComputeInfo *info) {
     if (!info) {
         printf("Error -> print_compute_info(): ComputeInfo is NULL\n");
