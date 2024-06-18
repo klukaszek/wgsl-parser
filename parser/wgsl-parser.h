@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "slre.h"
+#include "webgpu.h"
 
 #define OVECCOUNT 120
 
@@ -14,7 +16,7 @@
 // Represents a binding in the shader
 typedef struct {
     int binding;
-    char type[256];
+    char usage[256];
     int group;
 } BindingInfo;
 
@@ -35,6 +37,11 @@ typedef struct {
 // Parsing functions
 // -----------------------------------------------
 int parse_wgsl_compute(char *shader, ComputeInfo *info);
+
+// Validation functions
+// -----------------------------------------------
+int validate_compute(ComputeInfo *info);
+WGPUBufferUsage *get_buffer_usage(BindingInfo *binding);
 
 // File IO
 // -----------------------------------------------

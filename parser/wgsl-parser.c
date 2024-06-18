@@ -1,4 +1,5 @@
 #include "wgsl-parser.h"
+#include <stdio.h>
 
 // File IO
 // -----------------------------------------------
@@ -61,7 +62,8 @@ int parse_function_decl(char *shader_code, int *workgroup_sizes,
             // Extract the function name from the last capture group
             int fn_index = i + 1; // Function name index depends on the number
                                   // of workgroup sizes
-            memcpy(function_name, caps[fn_index].ptr, (size_t)caps[fn_index].len);
+            memcpy(function_name, caps[fn_index].ptr,
+                   (size_t)caps[fn_index].len);
             function_name[caps[fn_index].len] = '\0';
 
             // Extract workgroup sizes
@@ -94,7 +96,7 @@ int parse_binding_defs(char *shader_code, ComputeInfo *info) {
         printf("Error -> parse_binding_defs(): ComputeInfo is NULL\n");
         return -1;
     }
-    
+
     // Save the start of the shader code for resetting the pointer
     char *shader_code_start = shader_code;
     int match_length;
@@ -108,7 +110,7 @@ int parse_binding_defs(char *shader_code, ComputeInfo *info) {
     // Iterate until all patterns are tested.
     // If no pattern is found, return -1
     for (int i = 0; i < ((int)(sizeof(patterns) / sizeof(patterns[0]))); i++) {
-        // (group) (binding) (type)
+        // (group) (binding) (usage)
         struct slre_cap caps[3];
         // Iterate through the shader code and find all matches of the pattern
         while (
@@ -118,9 +120,9 @@ int parse_binding_defs(char *shader_code, ComputeInfo *info) {
                 num_found < MAX_GROUPS) { // Check bounds for array
                 int group = atoi(caps[0].ptr);
                 int binding = atoi(caps[1].ptr);
-                strncpy(info->groups[group].bindings[binding].type, caps[2].ptr,
-                        (size_t)caps[2].len);
-                info->groups[group].bindings[binding].type[caps[2].len] =
+                strncpy(info->groups[group].bindings[binding].usage,
+                        caps[2].ptr, (size_t)caps[2].len);
+                info->groups[group].bindings[binding].usage[caps[2].len] =
                     '\0'; // Null-terminate the string
                 num_found++;
                 info->groups[group].num_bindings++;
@@ -171,8 +173,108 @@ int parse_wgsl_compute(char *shader_code, ComputeInfo *info) {
 
     // Determine the number of groups for our binding layouts
     status = parse_binding_defs(shader_code, info);
+    if (status < 0) {
+        printf("Error -> parse_wgsl(): Could not parse binding definitions\n");
+        return -1;
+    }
 
     return status;
+}
+
+// Validate the compute info struct to ensure that the binding layout is correct
+int validate_compute(ComputeInfo *info) {
+    // Validate the bindgroup layout. If a group has no bindings, we can skip it
+    // and move on to the next group
+
+    printf("Validating compute info\n");
+
+    // 1. Check if a group has no bindings
+    // 2. Check each binding of the group for the following:
+    //   a. Binding index is out of bounds
+    //   b. Binding index does not match the current index
+    //   c. Group index does not match the current group index
+    //   d. Binding usage is empty
+    //   e. Binding usage(s) are not one of:
+    //      storage, uniform, read_write, read
+    for (int i = 0; i < MAX_GROUPS; i++) {
+        if (info->groups[i].num_bindings == 0) {
+            continue;
+        }
+
+        int num_bindings = info->groups[i].num_bindings;
+
+        /*
+        Error bitmask
+        0000 0001 -> Binding index out of bounds
+        0000 0010 -> Binding index mismatch
+        0000 0100 -> Group index mismatch
+        0000 1000 -> Binding usage is empty
+        0001 0000 -> Invalid binding usage
+        0000 0000 -> No error
+        */
+
+        uint8_t error_mask = 0;
+        for (int j = 0; j < num_bindings; j++) {
+            BindingInfo binding = info->groups[i].bindings[j];
+            if (binding.binding >= MAX_BINDINGS || binding.binding < 0) {
+                error_mask |= 0x01;
+            }
+            if (binding.binding != j) {
+                error_mask |= 0x02;
+            }
+            if (binding.group != i) {
+                error_mask |= 0x04;
+            }
+            if (strlen(binding.usage) == 0 || strlen(binding.usage) > 50) {
+                error_mask |= 0x08;
+                break;
+            }
+
+            // Make a copy of the usage string to tokenize it without ruining the pointer
+            char usage_copy[51];
+            strncpy(usage_copy, binding.usage, strlen(binding.usage));
+            usage_copy[strlen(binding.usage)] = '\0';
+
+            // Tokenize the usage string and check if all usages are valid
+            char *token = strtok(usage_copy, ", ");
+            while (token != NULL) {
+                if (strcmp(token, "storage") != 0 &&
+                    strcmp(token, "uniform") != 0 &&
+                    strcmp(token, "read_write") != 0 &&
+                    strcmp(token, "read") != 0) {
+                    error_mask |= 0x10;
+                    break;
+                }
+                token = strtok(NULL, ", ");
+            }
+
+            if (error_mask != 0) {
+                printf("Error -> validate_compute(): Group %d has invalid "
+                       "binding %d\n",
+                       i, binding.binding);
+                if (error_mask & 0x01) {
+                    printf("\tBinding index out of bounds\n");
+                }
+                if (error_mask & 0x02) {
+                    printf("\tBinding index mismatch\n");
+                }
+                if (error_mask & 0x04) {
+                    printf("\tGroup index mismatch\n");
+                }
+                if (error_mask & 0x08) {
+                    printf("\tBinding usage is empty OR too long\n");
+                }
+                if (error_mask & 0x10) {
+                    printf(
+                        "\tInvalid binding usage\n\t\tValid usages: storage, "
+                        "uniform, read_write, read\n\t\tMulti-usage "
+                        "traits must be separated by commas\n");
+                }
+                return -1;
+            }
+        }
+    }
+    return 1;
 }
 
 // Print the compute info struct
@@ -193,8 +295,8 @@ void print_compute_info(ComputeInfo *info) {
             printf("Group %d:\n", group.group);
             for (int j = 0; j < group.num_bindings; j++) {
                 const BindingInfo binding = group.bindings[j];
-                printf("  Binding %d: Type = %s\n", binding.binding,
-                       binding.type);
+                printf("  Binding %d: Usage = %s\n", binding.binding,
+                       binding.usage);
             }
         }
     }

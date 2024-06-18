@@ -1,5 +1,5 @@
 fips_begin_lib(wgsl_parser)
-    fips_files(wgsl-parser.c wgsl-parser.h slre.c slre.h)
+    fips_files(wgsl-parser.c wgsl-parser.h slre.c slre.h webgpu.h)
 fips_end_lib()
 
 fips_begin_app(test cmdline)
