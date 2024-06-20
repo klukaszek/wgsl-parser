@@ -1,9 +1,9 @@
+#include "slre.h"
+#include "webgpu.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include "slre.h"
-#include "webgpu.h"
 
 #define OVECCOUNT 120
 
@@ -15,14 +15,14 @@
 
 // Represents a binding in the shader
 typedef struct {
-    int binding;
+    uint32_t binding;
     char usage[256];
-    int group;
+    uint32_t group;
 } BindingInfo;
 
 // Represents a group of bindings
 typedef struct {
-    int group;
+    uint32_t group;
     BindingInfo bindings[MAX_BINDINGS];
     int num_bindings;
 } GroupInfo;
