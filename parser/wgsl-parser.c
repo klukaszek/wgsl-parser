@@ -217,7 +217,7 @@ int validate_compute(ComputeInfo *info) {
         uint8_t error_mask = 0;
         for (uint32_t j = 0; j < (uint32_t)num_bindings; j++) {
             BindingInfo binding = info->groups[i].bindings[j];
-            if (binding.binding >= MAX_BINDINGS || binding.binding < 0) {
+            if (binding.binding >= MAX_BINDINGS) {
                 error_mask |= 0x01;
             }
             if (binding.binding != j) {
