@@ -1,4 +1,5 @@
 #include "wgsl-parser.h"
+#include <stdint.h>
 #include <stdio.h>
 
 // File IO
@@ -118,8 +119,8 @@ int parse_binding_defs(char *shader_code, ComputeInfo *info) {
                                        (int)strlen(shader_code), caps, 3, 0))) {
             if (match_length > 0 &&
                 num_found < MAX_GROUPS) { // Check bounds for array
-                int group = atoi(caps[0].ptr);
-                int binding = atoi(caps[1].ptr);
+                uint32_t group = (uint32_t)atoi(caps[0].ptr);
+                uint32_t binding = (uint32_t)atoi(caps[1].ptr);
                 strncpy(info->groups[group].bindings[binding].usage,
                         caps[2].ptr, (size_t)caps[2].len);
                 info->groups[group].bindings[binding].usage[caps[2].len] =
@@ -167,7 +168,7 @@ int parse_wgsl_compute(char *shader_code, ComputeInfo *info) {
 
     // Initialize the group layout data
     for (int i = 0; i < MAX_GROUPS; i++) {
-        info->groups[i].group = i;
+        info->groups[i].group = (uint32_t)i;
         info->groups[i].num_bindings = 0;
     }
 
@@ -196,7 +197,7 @@ int validate_compute(ComputeInfo *info) {
     //   d. Binding usage is empty
     //   e. Binding usage(s) are not one of:
     //      storage, uniform, read_write, read
-    for (int i = 0; i < MAX_GROUPS; i++) {
+    for (uint32_t i = 0; i < MAX_GROUPS; i++) {
         if (info->groups[i].num_bindings == 0) {
             continue;
         }
@@ -214,7 +215,7 @@ int validate_compute(ComputeInfo *info) {
         */
 
         uint8_t error_mask = 0;
-        for (int j = 0; j < num_bindings; j++) {
+        for (uint32_t j = 0; j < (uint32_t)num_bindings; j++) {
             BindingInfo binding = info->groups[i].bindings[j];
             if (binding.binding >= MAX_BINDINGS || binding.binding < 0) {
                 error_mask |= 0x01;
@@ -230,7 +231,8 @@ int validate_compute(ComputeInfo *info) {
                 break;
             }
 
-            // Make a copy of the usage string to tokenize it without ruining the pointer
+            // Make a copy of the usage string to tokenize it without ruining
+            // the pointer
             char usage_copy[51];
             strncpy(usage_copy, binding.usage, strlen(binding.usage));
             usage_copy[strlen(binding.usage)] = '\0';
