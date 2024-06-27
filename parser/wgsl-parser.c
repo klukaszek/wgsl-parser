@@ -187,8 +187,6 @@ int validate_compute(ComputeInfo *info) {
     // Validate the bindgroup layout. If a group has no bindings, we can skip it
     // and move on to the next group
 
-    printf("Validating compute info\n");
-
     // 1. Check if a group has no bindings
     // 2. Check each binding of the group for the following:
     //   a. Binding index is out of bounds
